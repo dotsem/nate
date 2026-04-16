@@ -47,7 +47,22 @@ class EditorScreen extends ConsumerWidget {
           ),
           IconButton(
             icon: const Icon(Icons.save),
-            onPressed: () => ref.read(editorProvider.notifier).saveActiveFile(),
+            onPressed: () async {
+              final active = state.activeFile;
+              if (active == null) return;
+              if (active.isNotSavedAs()) {
+                final path = await showDialog<String>(
+                  context: context,
+                  builder: (context) =>
+                      ChangeFilenameDialog(initialPath: active.path ?? '', dialogTitle: 'Save File As'),
+                );
+                if (path != null && context.mounted) {
+                  ref.read(editorProvider.notifier).saveActiveFile(path: path);
+                }
+              } else {
+                ref.read(editorProvider.notifier).saveActiveFile();
+              }
+            },
             tooltip: 'Save',
           ),
           IconButton(icon: const Icon(Icons.settings), onPressed: () => context.push('/settings'), tooltip: 'Settings'),

@@ -157,14 +157,16 @@ class EditorNotifier extends Notifier<EditorState> {
     _persistSession();
   }
 
-  Future<void> saveActiveFile() async {
+  Future<void> saveActiveFile({String? path}) async {
     final active = state.activeFile;
     if (active == null) return;
 
-    if (active.path == null) {
-      final fileName = 'untitled_${DateTime.now().millisecondsSinceEpoch}.txt';
-      final path = '${state.settings.storagePath}/$fileName';
+    if (path != null) {
       return saveAs(path);
+    }
+
+    if (active.isNotSavedAs()) {
+      return;
     }
 
     await File(active.path!).writeAsString(active.content);

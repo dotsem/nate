@@ -27,4 +27,13 @@ class FileModel {
     if (path == null) return 'Untitled';
     return path!.split('/').last;
   }
+
+  int get lineCount {
+    if (content.isEmpty) return 1;
+    return '\n'.allMatches(content).length + 1;
+  }
+
+  bool isNotSavedAs() {
+    return path == null;
+  }
 }
