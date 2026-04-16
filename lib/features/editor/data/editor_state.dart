@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/file_model.dart';
-import '../../settings/models/editor_settings.dart';
+import 'package:nate/features/editor/models/file_model.dart';
+import 'package:nate/features/settings/models/editor_settings.dart';
 import 'storage_service.dart';
 
 final storageServiceProvider = Provider((ref) => StorageService());

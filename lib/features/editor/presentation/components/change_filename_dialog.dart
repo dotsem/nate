@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
-import '../../data/editor_state.dart';
+import 'package:nate/features/editor/data/editor_state.dart';
 
 class ChangeFilenameDialog extends ConsumerStatefulWidget {
   final String initialPath;

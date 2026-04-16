@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../data/editor_state.dart';
-import '../components/editor.dart';
-import '../components/change_filename_dialog.dart';
+import 'package:nate/features/editor/presentation/components/editor.dart';
+import 'package:nate/features/editor/presentation/components/file_tabs.dart';
+import 'package:nate/features/editor/presentation/components/change_filename_dialog.dart';
+import 'package:nate/features/editor/data/editor_state.dart';
 
 class EditorScreen extends ConsumerWidget {
   const EditorScreen({super.key});
@@ -71,7 +72,7 @@ class EditorScreen extends ConsumerWidget {
             ? null
             : PreferredSize(
                 preferredSize: const Size.fromHeight(40),
-                child: _FileTabs(
+                child: FileTabs(
                   files: state.openFiles,
                   activeIndex: state.activeFileIndex,
                   onTap: (index) => ref.read(editorProvider.notifier).setActiveFile(index),
@@ -113,57 +114,6 @@ class EditorScreen extends ConsumerWidget {
             child: const Text('Open'),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _FileTabs extends StatelessWidget {
-  final List<dynamic> files;
-  final int activeIndex;
-  final Function(int) onTap;
-  final Function(int) onClose;
-
-  const _FileTabs({required this.files, required this.activeIndex, required this.onTap, required this.onClose});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 40,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: files.length,
-        itemBuilder: (context, index) {
-          final file = files[index];
-          final isActive = index == activeIndex;
-
-          return GestureDetector(
-            onTap: () => onTap(index),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              decoration: BoxDecoration(
-                color: isActive ? Theme.of(context).colorScheme.surfaceContainerHigh : null,
-                border: Border(
-                  bottom: BorderSide(
-                    color: isActive ? Theme.of(context).colorScheme.primary : Colors.transparent,
-                    width: 2,
-                  ),
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    file.name + (file.isDirty ? '*' : ''),
-                    style: TextStyle(fontWeight: isActive ? FontWeight.bold : FontWeight.normal),
-                  ),
-                  const SizedBox(width: 8),
-                  InkWell(onTap: () => onClose(index), child: const Icon(Icons.close, size: 16)),
-                ],
-              ),
-            ),
-          );
-        },
       ),
     );
   }
