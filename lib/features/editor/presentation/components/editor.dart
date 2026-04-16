@@ -18,6 +18,7 @@ class _EditorState extends State<Editor> {
   final ScrollController _verticalController = ScrollController();
   final ScrollController _horizontalController = ScrollController();
   final ScrollController _sidebarController = ScrollController();
+  final FocusNode _focusNode = FocusNode();
 
   @override
   void initState() {
@@ -36,6 +37,7 @@ class _EditorState extends State<Editor> {
     _verticalController.dispose();
     _horizontalController.dispose();
     _sidebarController.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
@@ -52,38 +54,43 @@ class _EditorState extends State<Editor> {
           scrollController: _sidebarController,
         ),
         Expanded(
-          child: Padding(
-            padding: const EdgeInsets.only(bottom: EditorConfig.topPadding, top: EditorConfig.topPadding),
-            child: Scrollbar(
-              thumbVisibility: true,
-              controller: _horizontalController,
-              notificationPredicate: (n) => n.metrics.axis == Axis.horizontal,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => _focusNode.requestFocus(),
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: EditorConfig.topPadding, top: EditorConfig.topPadding),
               child: Scrollbar(
                 thumbVisibility: true,
-                controller: _verticalController,
-                notificationPredicate: (n) => n.metrics.axis == Axis.vertical,
-                child: SingleChildScrollView(
-                  controller: _horizontalController,
-                  scrollDirection: Axis.horizontal,
-                  child: IntrinsicWidth(
-                    child: TextField(
-                      controller: _controller,
-                      scrollController: _verticalController,
-                      maxLines: null,
-                      minLines: 1,
-                      keyboardType: TextInputType.multiline,
-                      autofocus: true,
-                      style: EditorConfig.textStyle,
-                      decoration: const InputDecoration(
-                        border: InputBorder.none,
-                        isDense: true,
-                        contentPadding: EdgeInsets.only(
-                          left: 8,
-                          top: EditorConfig.topPadding,
-                          bottom: EditorConfig.bottomPadding,
+                controller: _horizontalController,
+                notificationPredicate: (n) => n.metrics.axis == Axis.horizontal,
+                child: Scrollbar(
+                  thumbVisibility: true,
+                  controller: _verticalController,
+                  notificationPredicate: (n) => n.metrics.axis == Axis.vertical,
+                  child: SingleChildScrollView(
+                    controller: _horizontalController,
+                    scrollDirection: Axis.horizontal,
+                    child: IntrinsicWidth(
+                      child: TextField(
+                        controller: _controller,
+                        focusNode: _focusNode,
+                        scrollController: _verticalController,
+                        maxLines: null,
+                        minLines: 1,
+                        keyboardType: TextInputType.multiline,
+                        autofocus: true,
+                        style: EditorConfig.textStyle,
+                        decoration: const InputDecoration(
+                          border: InputBorder.none,
+                          isDense: true,
+                          contentPadding: EdgeInsets.only(
+                            left: 8,
+                            top: EditorConfig.topPadding,
+                            bottom: EditorConfig.bottomPadding,
+                          ),
                         ),
+                        onChanged: widget.onChanged,
                       ),
-                      onChanged: widget.onChanged,
                     ),
                   ),
                 ),
