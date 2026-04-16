@@ -1,3 +1,4 @@
-# nate
+# Not Another Text Editor (NATE)
 
-A new Flutter project.
+> Don't let the name fool you, NATE is just another text editor.
+
