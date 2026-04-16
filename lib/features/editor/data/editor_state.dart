@@ -61,6 +61,7 @@ class EditorNotifier extends Notifier<EditorState> {
           path: f['path']!.isEmpty ? null : f['path'],
           content: f['content']!,
           isDirty: true,
+          inode: f['inode'],
         );
       }).toList();
     }
@@ -115,7 +116,9 @@ class EditorNotifier extends Notifier<EditorState> {
   }
 
   Future<void> _persistSession() async {
-    final sessionData = state.openFiles.map((f) => {'path': f.path ?? '', 'content': f.content}).toList();
+    final sessionData = state.openFiles
+        .map((f) => {'path': f.path ?? '', 'content': f.content, 'inode': f.inode})
+        .toList();
     await _storage.saveSession(sessionData);
   }
 
@@ -123,11 +126,22 @@ class EditorNotifier extends Notifier<EditorState> {
     final file = File(path);
     if (!await file.exists()) return;
 
+    final inode = await _storage.getInode(path);
     final content = await file.readAsString();
 
-    final existingIndex = state.openFiles.indexWhere((f) => f.path == path);
+    // Deduplicate by inode primarily, then by path
+    final existingIndex = state.openFiles.indexWhere((f) => (inode != null && f.inode == inode) || f.path == path);
     if (existingIndex != -1) {
-      state = state.copyWith(activeFileIndex: existingIndex);
+      // Update path in case it changed but inode matched
+      final existing = state.openFiles[existingIndex];
+      if (existing.path != path) {
+        final updated = existing.copyWith(path: path);
+        final newFiles = List<FileModel>.from(state.openFiles);
+        newFiles[existingIndex] = updated;
+        state = state.copyWith(openFiles: newFiles, activeFileIndex: existingIndex);
+      } else {
+        state = state.copyWith(activeFileIndex: existingIndex);
+      }
       return;
     }
 
@@ -136,6 +150,7 @@ class EditorNotifier extends Notifier<EditorState> {
       path: path,
       content: content,
       isDirty: false,
+      inode: inode,
     );
 
     state = state.copyWith(openFiles: [...state.openFiles, newFile], activeFileIndex: state.openFiles.length);
@@ -153,8 +168,9 @@ class EditorNotifier extends Notifier<EditorState> {
     }
 
     await File(active.path!).writeAsString(active.content);
+    final inode = await _storage.getInode(active.path!);
 
-    final updated = active.copyWith(isDirty: false);
+    final updated = active.copyWith(isDirty: false, inode: inode);
     final newFiles = List<FileModel>.from(state.openFiles);
     newFiles[state.activeFileIndex] = updated;
 
@@ -167,10 +183,31 @@ class EditorNotifier extends Notifier<EditorState> {
     if (active == null) return;
 
     await File(path).writeAsString(active.content);
+    final inode = await _storage.getInode(path);
 
-    final updated = active.copyWith(path: path, isDirty: false);
+    final updated = active.copyWith(path: path, isDirty: false, inode: inode);
     final newFiles = List<FileModel>.from(state.openFiles);
     newFiles[state.activeFileIndex] = updated;
+
+    state = state.copyWith(openFiles: newFiles);
+    _persistSession();
+  }
+
+  Future<void> renameFile(int index, String newPath) async {
+    final fileModel = state.openFiles[index];
+    if (fileModel.path == null) {
+      return saveAs(newPath);
+    }
+
+    final oldFile = File(fileModel.path!);
+    if (!await oldFile.exists()) return;
+
+    await oldFile.rename(newPath);
+    final inode = await _storage.getInode(newPath);
+
+    final updated = fileModel.copyWith(path: newPath, inode: inode);
+    final newFiles = List<FileModel>.from(state.openFiles);
+    newFiles[index] = updated;
 
     state = state.copyWith(openFiles: newFiles);
     _persistSession();

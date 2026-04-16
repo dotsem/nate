@@ -5,15 +5,17 @@ class FileModel {
   final String? path;
   final String content;
   final bool isDirty;
+  final int? inode;
 
-  FileModel({required this.id, this.path, required this.content, this.isDirty = false});
+  FileModel({required this.id, this.path, required this.content, this.isDirty = false, this.inode});
 
-  FileModel copyWith({String? path, String? content, bool? isDirty}) {
+  FileModel copyWith({String? path, String? content, bool? isDirty, int? inode}) {
     return FileModel(
       id: id,
       path: path ?? this.path,
       content: content ?? this.content,
       isDirty: isDirty ?? this.isDirty,
+      inode: inode ?? this.inode,
     );
   }
 

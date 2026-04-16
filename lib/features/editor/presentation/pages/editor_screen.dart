@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../data/editor_state.dart';
 import '../components/editor.dart';
+import '../components/change_filename_dialog.dart';
 
 class EditorScreen extends ConsumerWidget {
   const EditorScreen({super.key});
@@ -28,6 +29,21 @@ class EditorScreen extends ConsumerWidget {
             icon: const Icon(Icons.add),
             onPressed: () => ref.read(editorProvider.notifier).addNewFile(),
             tooltip: 'New File',
+          ),
+          IconButton(
+            icon: const Icon(Icons.drive_file_rename_outline),
+            tooltip: 'Rename File',
+            onPressed: () async {
+              final active = state.activeFile;
+              if (active == null) return;
+              final newPath = await showDialog<String>(
+                context: context,
+                builder: (context) => ChangeFilenameDialog(initialPath: active.path ?? ''),
+              );
+              if (newPath != null && context.mounted) {
+                ref.read(editorProvider.notifier).renameFile(state.activeFileIndex, newPath);
+              }
+            },
           ),
           IconButton(
             icon: const Icon(Icons.save),

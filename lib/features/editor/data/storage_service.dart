@@ -40,11 +40,9 @@ class StorageService {
     };
   }
 
-  // Session persistence: store list of open file paths and temporary content for unsaved files
-  Future<void> saveSession(List<Map<String, String>> files) async {
+  // Session persistence: store list of open file paths, inodes, and temporary content
+  Future<void> saveSession(List<Map<String, dynamic>> files) async {
     final prefs = await SharedPreferences.getInstance();
-    // In a real app, we'd probably save temp content to a file, but for simplicity we'll use SharedPreferences if it's small or just paths
-    // Actually, I'll save temp files in a hidden .nate_session folder
     final sessionDir = Directory(p.join(await _getAppSupportDir(), '.session'));
     if (!await sessionDir.exists()) await sessionDir.create(recursive: true);
 
@@ -58,32 +56,47 @@ class StorageService {
       final f = files[i];
       final path = f['path'];
       final content = f['content']!;
+      final inode = f['inode'];
 
       final tempFile = File(p.join(sessionDir.path, 'file_$i.tmp'));
       await tempFile.writeAsString(content);
 
-      sessionMetadata.add('${path ?? ""}|${tempFile.path}');
+      // Metadata format: path|tempPath|inode
+      sessionMetadata.add('${path ?? ""}|${tempFile.path}|${inode ?? ""}');
     }
     await prefs.setStringList(_keySessionFiles, sessionMetadata);
   }
 
-  Future<List<Map<String, String>>> loadSession() async {
+  Future<List<Map<String, dynamic>>> loadSession() async {
     final prefs = await SharedPreferences.getInstance();
     final sessionMetadata = prefs.getStringList(_keySessionFiles) ?? [];
-    List<Map<String, String>> files = [];
+    List<Map<String, dynamic>> files = [];
 
     for (final meta in sessionMetadata) {
       final parts = meta.split('|');
       final originalPath = parts[0].isEmpty ? null : parts[0];
       final tempPath = parts[1];
+      final inodeString = parts.length > 2 ? parts[2] : '';
+      final inode = int.tryParse(inodeString);
 
       final tempFile = File(tempPath);
       if (await tempFile.exists()) {
         final content = await tempFile.readAsString();
-        files.add({'path': originalPath ?? '', 'content': content});
+        files.add({'path': originalPath ?? '', 'content': content, 'inode': inode});
       }
     }
     return files;
+  }
+
+  Future<int?> getInode(String path) async {
+    if (!Platform.isLinux) return null;
+    try {
+      final result = await Process.run('stat', ['-c', '%i', path]);
+      if (result.exitCode == 0) {
+        return int.tryParse(result.stdout.toString().trim());
+      }
+    } catch (_) {}
+    return null;
   }
 
   Future<String> _getAppSupportDir() async {
