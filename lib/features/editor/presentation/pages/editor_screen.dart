@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../data/editor_state.dart';
-import '../components/line_number_editor.dart';
+import '../components/editor.dart';
 
 class EditorScreen extends ConsumerWidget {
   const EditorScreen({super.key});
@@ -50,7 +50,7 @@ class EditorScreen extends ConsumerWidget {
       ),
       body: state.openFiles.isEmpty
           ? const Center(child: Text('No files open'))
-          : LineNumberEditor(
+          : Editor(
               key: ValueKey(state.activeFile?.id),
               content: state.activeFile?.content ?? '',
               showLineNumbers: state.settings.showLineNumbers,

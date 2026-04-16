@@ -2,18 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:nate/features/editor/presentation/components/left_sidebar.dart';
 import 'package:nate/core/config/editor_config.dart';
 
-class LineNumberEditor extends StatefulWidget {
+class Editor extends StatefulWidget {
   final String content;
   final bool showLineNumbers;
   final ValueChanged<String> onChanged;
 
-  const LineNumberEditor({super.key, required this.content, required this.showLineNumbers, required this.onChanged});
+  const Editor({super.key, required this.content, required this.showLineNumbers, required this.onChanged});
 
   @override
-  State<LineNumberEditor> createState() => _LineNumberEditorState();
+  State<Editor> createState() => _EditorState();
 }
 
-class _LineNumberEditorState extends State<LineNumberEditor> {
+class _EditorState extends State<Editor> {
   late TextEditingController _controller;
   final ScrollController _verticalController = ScrollController();
   final ScrollController _horizontalController = ScrollController();
