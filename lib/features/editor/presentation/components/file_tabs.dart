@@ -49,7 +49,7 @@ class FileTabs extends StatelessWidget {
                   const SizedBox(width: 8),
                   InkWell(
                     onTap: () async {
-                      if (file.isNotSavedAs()) {
+                      if (file.isNotSavedAs() && file.isDirty) {
                         if (!await _showDiscardDialog(context, 'Discard Unsaved File?')) {
                           return;
                         }
