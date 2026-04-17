@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nate/features/editor/models/cursor_info_model.dart';
 import 'package:nate/features/editor/presentation/components/left_sidebar.dart';
 import 'package:nate/core/config/editor_config.dart';
 
@@ -6,8 +7,15 @@ class Editor extends StatefulWidget {
   final String content;
   final bool showLineNumbers;
   final ValueChanged<String> onChanged;
+  final Function(CursorInfo) cursorPosition;
 
-  const Editor({super.key, required this.content, required this.showLineNumbers, required this.onChanged});
+  const Editor({
+    super.key,
+    required this.content,
+    required this.showLineNumbers,
+    required this.onChanged,
+    required this.cursorPosition,
+  });
 
   @override
   State<Editor> createState() => _EditorState();
@@ -27,6 +35,29 @@ class _EditorState extends State<Editor> {
     _verticalController.addListener(() {
       if (_sidebarController.hasClients) {
         _sidebarController.jumpTo(_verticalController.offset);
+      }
+    });
+
+    _controller.addListener(() {
+      final selection = _controller.selection;
+      if (selection.isValid) {
+        final text = _controller.text;
+        final offset = selection.extentOffset;
+
+        final textBefore = text.substring(0, offset);
+        final line = '\n'.allMatches(textBefore).length + 1;
+        final lastNewline = textBefore.lastIndexOf('\n');
+        final column = offset - lastNewline;
+
+        final cursorInfo = CursorInfo(
+          line: line,
+          column: column,
+          selected: !selection.isCollapsed,
+          selectionStart: selection.start,
+          selectionEnd: selection.end,
+        );
+
+        widget.cursorPosition(cursorInfo);
       }
     });
   }
@@ -93,6 +124,7 @@ class _EditorState extends State<Editor> {
                                     bottom: EditorConfig.bottomPadding,
                                   ),
                                 ),
+
                                 onChanged: widget.onChanged,
                               ),
                             ),

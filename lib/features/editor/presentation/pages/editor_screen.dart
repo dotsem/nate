@@ -3,17 +3,26 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:nate/core/router/router_constants.dart';
 import 'package:nate/core/widgets/nate_app_bar.dart';
+import 'package:nate/features/editor/models/cursor_info_model.dart';
 import 'package:nate/features/editor/presentation/components/editor.dart';
 import 'package:nate/features/editor/presentation/components/file_tabs.dart';
 import 'package:nate/features/editor/presentation/components/change_filename_dialog.dart';
 import 'package:nate/features/editor/data/editor_state.dart';
 import 'package:nate/features/editor/presentation/components/editor_shortcuts.dart';
+import 'package:nate/features/editor/presentation/components/status_bar.dart';
 
-class EditorScreen extends ConsumerWidget {
+class EditorScreen extends ConsumerStatefulWidget {
   const EditorScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<EditorScreen> createState() => _EditorScreenState();
+}
+
+class _EditorScreenState extends ConsumerState<EditorScreen> {
+  CursorInfo? _cursorInfo;
+
+  @override
+  Widget build(BuildContext context) {
     final state = ref.watch(editorProvider);
     final title = state.activeFile?.name ?? 'Untitled';
 
@@ -22,9 +31,9 @@ class EditorScreen extends ConsumerWidget {
     }
 
     return EditorShortcuts(
-      onSave: () => _handleSave(context, ref),
+      onSave: () => _handleSave(context),
       onNewFile: () => ref.read(editorProvider.notifier).addNewFile(),
-      onOpenFile: () => _showOpenDialog(context, ref),
+      onOpenFile: () => _showOpenDialog(context),
       child: Scaffold(
         appBar: NateAppBar(
           title: Row(
@@ -39,7 +48,7 @@ class EditorScreen extends ConsumerWidget {
           actions: [
             IconButton(
               icon: const Icon(Icons.open_in_browser),
-              onPressed: () => _showOpenDialog(context, ref),
+              onPressed: () => _showOpenDialog(context),
               tooltip: 'Open File',
             ),
             IconButton(
@@ -62,7 +71,7 @@ class EditorScreen extends ConsumerWidget {
                 }
               },
             ),
-            IconButton(icon: const Icon(Icons.save), onPressed: () => _handleSave(context, ref), tooltip: 'Save'),
+            IconButton(icon: const Icon(Icons.save), onPressed: () => _handleSave(context), tooltip: 'Save'),
             IconButton(
               icon: const Icon(Icons.settings),
               onPressed: () => context.go(RouterConstants.settingsRoute),
@@ -83,17 +92,29 @@ class EditorScreen extends ConsumerWidget {
         ),
         body: state.openFiles.isEmpty
             ? const Center(child: Text('No files open'))
-            : Editor(
-                key: ValueKey(state.activeFile?.id),
-                content: state.activeFile?.content ?? '',
-                showLineNumbers: state.settings.showLineNumbers,
-                onChanged: (val) => ref.read(editorProvider.notifier).updateContent(val),
+            : Column(
+                children: [
+                  Expanded(
+                    child: Editor(
+                      key: ValueKey(state.activeFile?.id),
+                      content: state.activeFile?.content ?? '',
+                      showLineNumbers: state.settings.showLineNumbers,
+                      onChanged: (val) => ref.read(editorProvider.notifier).updateContent(val),
+                      cursorPosition: (cursorInfo) {
+                        setState(() {
+                          _cursorInfo = cursorInfo;
+                        });
+                      },
+                    ),
+                  ),
+                  if (state.settings.showStatusBar) StatusBar(cursorInfo: _cursorInfo ?? CursorInfo.empty()),
+                ],
               ),
       ),
     );
   }
 
-  Future<void> _handleSave(BuildContext context, WidgetRef ref) async {
+  Future<void> _handleSave(BuildContext context) async {
     final state = ref.read(editorProvider);
     final active = state.activeFile;
     if (active == null) return;
@@ -111,7 +132,7 @@ class EditorScreen extends ConsumerWidget {
     }
   }
 
-  void _showOpenDialog(BuildContext context, WidgetRef ref) {
+  void _showOpenDialog(BuildContext context) {
     final notifier = ref.read(editorProvider.notifier);
     final settings = ref.read(editorProvider).settings;
     final controller = TextEditingController(text: settings.storagePath);

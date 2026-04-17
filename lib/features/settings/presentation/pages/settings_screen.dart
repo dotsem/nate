@@ -36,6 +36,13 @@ class SettingsScreen extends ConsumerWidget {
               notifier.updateSettings(settings.copyWith(showLineNumbers: val));
             },
           ),
+          SwitchListTile(
+            title: const Text('Show Status Bar'),
+            value: settings.showStatusBar,
+            onChanged: (val) {
+              notifier.updateSettings(settings.copyWith(showStatusBar: val));
+            },
+          ),
           ListTile(
             title: const Text('Theme'),
             trailing: DropdownButton<ThemeMode>(
