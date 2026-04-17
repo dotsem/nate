@@ -1,2 +1,4 @@
-const String editorRoute = '/';
-const String settingsRoute = '/settings';
+class RouterConstants {
+  static const String editorRoute = '/';
+  static const String settingsRoute = '/settings';
+}

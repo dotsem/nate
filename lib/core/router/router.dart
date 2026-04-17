@@ -4,9 +4,9 @@ import 'package:nate/features/settings/presentation/pages/settings_screen.dart';
 import 'router_constants.dart';
 
 final router = GoRouter(
-  initialLocation: editorRoute,
+  initialLocation: RouterConstants.editorRoute,
   routes: [
-    GoRoute(path: editorRoute, builder: (context, state) => const EditorScreen()),
-    GoRoute(path: settingsRoute, builder: (context, state) => const SettingsScreen()),
+    GoRoute(path: RouterConstants.editorRoute, builder: (context, state) => const EditorScreen()),
+    GoRoute(path: RouterConstants.settingsRoute, builder: (context, state) => const SettingsScreen()),
   ],
 );

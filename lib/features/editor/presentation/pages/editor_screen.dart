@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:nate/core/router/router_constants.dart';
+import 'package:nate/core/widgets/nate_app_bar.dart';
 import 'package:nate/features/editor/presentation/components/editor.dart';
 import 'package:nate/features/editor/presentation/components/file_tabs.dart';
 import 'package:nate/features/editor/presentation/components/change_filename_dialog.dart';
@@ -13,6 +15,7 @@ class EditorScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(editorProvider);
+    final title = state.activeFile?.name ?? 'Untitled';
 
     if (state.isLoading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
@@ -23,8 +26,16 @@ class EditorScreen extends ConsumerWidget {
       onNewFile: () => ref.read(editorProvider.notifier).addNewFile(),
       onOpenFile: () => _showOpenDialog(context, ref),
       child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Nate'),
+        appBar: NateAppBar(
+          title: Row(
+            children: [
+              const Text('Nate'),
+              if (state.activeFile != null) ...[
+                const Text(' - ', style: TextStyle(color: Colors.white)),
+                Text(title, style: const TextStyle(fontWeight: FontWeight.normal)),
+              ],
+            ],
+          ),
           actions: [
             IconButton(
               icon: const Icon(Icons.open_in_browser),
@@ -54,7 +65,7 @@ class EditorScreen extends ConsumerWidget {
             IconButton(icon: const Icon(Icons.save), onPressed: () => _handleSave(context, ref), tooltip: 'Save'),
             IconButton(
               icon: const Icon(Icons.settings),
-              onPressed: () => context.push('/settings'),
+              onPressed: () => context.go(RouterConstants.settingsRoute),
               tooltip: 'Settings',
             ),
           ],
