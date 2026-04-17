@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nate/core/router/router_constants.dart';
 import 'package:nate/core/widgets/nate_app_bar.dart';
 import 'package:nate/features/editor/data/editor_state.dart';
 
@@ -13,7 +14,7 @@ class SettingsScreen extends ConsumerWidget {
     final settings = state.settings;
 
     return Scaffold(
-      appBar: const NateAppBar(title: Text('Settings')),
+      appBar: const NateAppBar(title: Text('Settings'), routeBackTo: RouterConstants.editorRoute),
       body: ListView(
         children: [
           ListTile(

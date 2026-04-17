@@ -1,18 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:window_manager/window_manager.dart';
 
 class NateAppBar extends StatelessWidget implements PreferredSizeWidget {
   final Widget? title;
   final List<Widget>? actions;
   final PreferredSizeWidget? bottom;
+  final String? routeBackTo;
 
-  const NateAppBar({super.key, this.title, this.actions, this.bottom});
+  const NateAppBar({super.key, this.title, this.actions, this.bottom, this.routeBackTo});
 
   @override
   Widget build(BuildContext context) {
     return AppBar(
       title: DragToMoveArea(child: title ?? const Text('Nate')),
       flexibleSpace: const DragToMoveArea(child: SizedBox.expand()),
+      leading: routeBackTo != null
+          ? IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => context.go(routeBackTo!))
+          : null,
       actions: [
         ...?actions,
         const VerticalDivider(width: 1, indent: 12, endIndent: 12),
